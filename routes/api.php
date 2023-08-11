@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TaskController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Models\Task;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\TagController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -19,6 +21,40 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::prefix('auth')->group(function () {
+    Route::get('/google', [AuthController::class, 'loginByGoogle']);
+    Route::get('/google/callback', [AuthController::class, 'loginByGoogleCallback']);
+
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', [AuthController::class, 'user']);
+});
+
 Route::prefix('tasks')->group(function () {
-    Route::get('/', [TaskController::class, 'index']);
+    Route::middleware('auth:sanctum')->group(
+        function () {
+            Route::get('/', [TaskController::class, 'getTasks']);
+            Route::get('/shared', [TaskController::class, 'getSharedTasks']);
+            Route::get('/history', [TaskController::class, 'getHistoryTasks']);
+            Route::get('/{id}', [TaskController::class, 'getTask']);
+
+            Route::post('/', [TaskController::class, 'createTask']);
+            Route::put('/{id}', [TaskController::class, 'updateTask']);
+            Route::delete('/{id}', [TaskController::class, 'deleteTask']);
+
+            Route::post('/{id}/members', [TaskController::class, 'addMember']);
+            Route::delete('/{id}/members/{memberId}', [TaskController::class, 'removeMember']);
+        }
+    );
+});
+
+
+Route::get('/members', [UserController::class, 'getMembers']);
+
+Route::prefix('tags')->group(function () {
+    Route::get('/', [TagController::class, 'getTags']);
+    Route::post('/', [TagController::class, 'createTag']);
+    Route::put('/{id}', [TagController::class, 'updateTag']);
+    Route::delete('/{id}', [TagController::class, 'deleteTag']);
 });

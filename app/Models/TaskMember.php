@@ -18,21 +18,11 @@ class TaskMember extends Model
 
     public function task()
     {
-        return $this->belongsTo(Task::class);
+        return $this->belongsTo(Task::class, 'task_id', 'id');
     }
 
     public function member()
     {
-        return $this->belongsTo(User::class);
-    }
-
-    public function getMemberNameAttribute()
-    {
-        return $this->member->name;
-    }
-
-    public function getMemberEmailAttribute()
-    {
-        return $this->member->email;
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 }
