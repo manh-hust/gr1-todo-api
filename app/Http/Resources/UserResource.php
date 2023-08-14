@@ -19,8 +19,8 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'googleId' => $this->google_id,
-            'updatedAt' => $this->updated_at,
-            'createdAt' => $this->created_at,
+            'updatedAt' => $this->updated_at?->format('Y-m-d H:i'),
+            'createdAt' => $this->created_at?->format('Y-m-d H:i'),
         ];
     }
 }

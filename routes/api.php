@@ -32,21 +32,21 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::prefix('tasks')->group(function () {
-    Route::middleware('auth:sanctum')->group(
-        function () {
-            Route::get('/', [TaskController::class, 'getTasks']);
-            Route::get('/shared', [TaskController::class, 'getSharedTasks']);
-            Route::get('/history', [TaskController::class, 'getHistoryTasks']);
-            Route::get('/{id}', [TaskController::class, 'getTask']);
+    // Route::middleware('auth:sanctum')->group(
+    //     function () {
+    Route::get('/', [TaskController::class, 'getTasks']);
+    Route::get('/shared', [TaskController::class, 'getSharedTasks']);
+    Route::get('/history', [TaskController::class, 'getHistoryTasks']);
+    Route::get('/{id}', [TaskController::class, 'getTask']);
 
-            Route::post('/', [TaskController::class, 'createTask']);
-            Route::put('/{id}', [TaskController::class, 'updateTask']);
-            Route::delete('/{id}', [TaskController::class, 'deleteTask']);
+    Route::post('/', [TaskController::class, 'createTask']);
+    Route::post('/{id}/edit', [TaskController::class, 'updateTask']);
+    Route::delete('/{id}', [TaskController::class, 'deleteTask']);
 
-            Route::post('/{id}/members', [TaskController::class, 'addMember']);
-            Route::delete('/{id}/members/{memberId}', [TaskController::class, 'removeMember']);
-        }
-    );
+    Route::post('/{id}/members', [TaskController::class, 'addMember']);
+    Route::delete('/{id}/members/{memberId}', [TaskController::class, 'removeMember']);
+    //     }
+    // );
 });
 
 
@@ -55,6 +55,6 @@ Route::get('/members', [UserController::class, 'getMembers']);
 Route::prefix('tags')->group(function () {
     Route::get('/', [TagController::class, 'getTags']);
     Route::post('/', [TagController::class, 'createTag']);
-    Route::put('/{id}', [TagController::class, 'updateTag']);
+    Route::post('/{id}', [TagController::class, 'updateTag']);
     Route::delete('/{id}', [TagController::class, 'deleteTag']);
 });
