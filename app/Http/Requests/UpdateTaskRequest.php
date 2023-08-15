@@ -9,18 +9,25 @@ class UpdateTaskRequest extends BaseRequest
         return [
             'title' => 'required|string',
             'description' => 'string',
-            'endAtDate' => 'date_format:Y-m-d',
-            'endAtTime' => 'date_format:H:i',
+            'startAt' => 'date_format:Y-m-d H:i',
             'tags' => 'array',
             'tags.*' => 'integer',
             'members' => 'array',
             'members.*' => 'integer',
-            'status' => 'integer',
         ];
     }
 
     public function messages()
     {
-        return [];
+        return [
+            'title.required' => 'Title is required',
+            'title.string' => 'Title must be string',
+            'description.string' => 'Description must be string',
+            'startAt.date_format' => 'StartAt must be date format Y-m-d H:i',
+            'tags.array' => 'Tags must be array',
+            'tags.*.integer' => 'Tags must be integer',
+            'members.array' => 'Members must be array',
+            'members.*.integer' => 'Members must be integer',
+        ];
     }
 }

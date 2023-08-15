@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\TaskStatus;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\CreateTaskRequest;
+use App\Http\Requests\UpdateStatusRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
@@ -20,6 +21,7 @@ class TaskController extends Controller
         $userId = 1;
         $tasks = Task::with(['members', 'tags'])->where([
             ['user_id', $userId],
+            ['deleted_at', null]
         ])->get();
 
         $todoTasks = $tasks->filter(function ($task) {
@@ -45,19 +47,13 @@ class TaskController extends Controller
     {
         // $userId = auth()->user()->id;
         $userId = 1;
-        $endAt = $request->endAtDate . ' ' . $request->endAtTime;
-
-        if ($endAt < now() && $endAt !== ' ') {
-            return ApiResponse::createFailedResponse(['EndAt must be greater than now']);
-        }
 
         DB::beginTransaction();
         try {
             $task = Task::create([
                 'title' => $request->title,
                 'description' => $request->description,
-                'start_at' => now(),
-                'end_at' => $endAt,
+                'start_at' => $request->startAt,
                 'status' => TaskStatus::TODO,
                 'user_id' => $userId,
             ]);
@@ -83,7 +79,6 @@ class TaskController extends Controller
 
                 TaskMember::insert($insertData);
             }
-
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -100,16 +95,11 @@ class TaskController extends Controller
         $task = Task::where([
             ['id', $id],
             ['user_id', $userId],
+            ['deleted_at', null]
         ])->first();
 
         if (!$task) {
             return ApiResponse::createFailedResponse(['Task not found']);
-        }
-
-        $endAt = $request->endAtDate . ' ' . $request->endAtTime;
-
-        if ($endAt < now() && $endAt !== ' ') {
-            return ApiResponse::createFailedResponse(['EndAt must be greater than now']);
         }
 
         DB::beginTransaction();
@@ -117,8 +107,7 @@ class TaskController extends Controller
             $task->update([
                 'title' => $request->title,
                 'description' => $request->description,
-                'end_at' => $endAt,
-                'status' => $request->status,
+                'start_at' => $request->startAt,
             ]);
 
             if ($request->tags) {
@@ -131,6 +120,8 @@ class TaskController extends Controller
 
                 TaskTag::where('task_id', $task->id)->delete();
                 TaskTag::insert($insertData);
+            } else {
+                TaskTag::where('task_id', $task->id)->delete();
             }
 
             if ($request->members) {
@@ -140,9 +131,10 @@ class TaskController extends Controller
                         'user_id' => $memberId,
                     ];
                 })->toArray();
-
                 TaskMember::where('task_id', $task->id)->delete();
                 TaskMember::insert($insertData);
+            } else {
+                TaskMember::where('task_id', $task->id)->delete();
             }
 
             DB::commit();
@@ -152,5 +144,69 @@ class TaskController extends Controller
         }
 
         return ApiResponse::createSuccessResponse(new TaskResource($task));
+    }
+
+    public function updateStatus(UpdateStatusRequest $request, $id)
+    {
+        // $userId = auth()->user()->id;
+        $userId = 1;
+        $task = Task::where([
+            ['id', $id],
+            ['user_id', $userId],
+            ['deleted_at', null]
+        ])->first();
+
+        if (!$task) {
+            return ApiResponse::createFailedResponse(['Task not found']);
+        }
+
+        switch ($request->status) {
+            case TaskStatus::TODO:
+                $task->update([
+                    'status' => $request->status,
+                    'end_at' => null,
+                ]);
+                break;
+            case TaskStatus::INPROGRESS:
+                $task->update([
+                    'status' => $request->status,
+                    'end_at' => null,
+                ]);
+                break;
+            case TaskStatus::DONE:
+                if (!$request->endAt) {
+                    return ApiResponse::createFailedResponse(['EndAt is required']);
+                }
+                $task->update([
+                    'status' => $request->status,
+                    'end_at' => $request->endAt,
+                ]);
+                break;
+            default:
+                return ApiResponse::createFailedResponse(['Status is invalid']);
+        }
+
+        return ApiResponse::createSuccessResponse(new TaskResource($task));
+    }
+
+    public function deleteTask($id)
+    {
+        // $userId = auth()->user()->id;
+        $userId = 1;
+        $task = Task::where([
+            ['id', $id],
+            ['user_id', $userId],
+            ['deleted_at', null]
+        ])->first();
+
+        if (!$task) {
+            return ApiResponse::createFailedResponse(['Task not found']);
+        }
+
+        $task->update([
+            'deleted_at' => now(),
+        ]);
+
+        return ApiResponse::createSuccessResponse([]);
     }
 }

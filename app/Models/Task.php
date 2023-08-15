@@ -18,11 +18,13 @@ class Task extends Model
         'user_id',
         'start_at',
         'end_at',
+        'deleted_at'
     ];
 
     protected $casts = [
         'start_at' => 'datetime',
         'end_at' => 'datetime',
+        'deleted_at' => 'datetime'
     ];
 
     public function user()

@@ -41,7 +41,8 @@ Route::prefix('tasks')->group(function () {
 
     Route::post('/', [TaskController::class, 'createTask']);
     Route::post('/{id}/edit', [TaskController::class, 'updateTask']);
-    Route::delete('/{id}', [TaskController::class, 'deleteTask']);
+    Route::post('/{id}/status', [TaskController::class, 'updateStatus']);
+    Route::post('/{id}/delete', [TaskController::class, 'deleteTask']);
 
     Route::post('/{id}/members', [TaskController::class, 'addMember']);
     Route::delete('/{id}/members/{memberId}', [TaskController::class, 'removeMember']);
