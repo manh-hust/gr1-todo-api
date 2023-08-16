@@ -17,8 +17,7 @@ class TaskController extends Controller
 {
     public function getTasks()
     {
-        // $userId = auth()->user()->id;
-        $userId = 1;
+        $userId = auth()->user()->id;
         $tasks = Task::with(['members', 'tags'])->where([
             ['user_id', $userId],
             ['deleted_at', null]
@@ -45,8 +44,7 @@ class TaskController extends Controller
 
     public function createTask(CreateTaskRequest $request)
     {
-        // $userId = auth()->user()->id;
-        $userId = 1;
+        $userId = auth()->user()->id;
 
         DB::beginTransaction();
         try {
@@ -90,8 +88,7 @@ class TaskController extends Controller
 
     public function updateTask(UpdateTaskRequest $request, $id)
     {
-        // $userId = auth()->user()->id;
-        $userId = 1;
+        $userId = auth()->user()->id;
         $task = Task::where([
             ['id', $id],
             ['user_id', $userId],
@@ -148,8 +145,7 @@ class TaskController extends Controller
 
     public function updateStatus(UpdateStatusRequest $request, $id)
     {
-        // $userId = auth()->user()->id;
-        $userId = 1;
+        $userId = auth()->user()->id;
         $task = Task::where([
             ['id', $id],
             ['user_id', $userId],
@@ -191,8 +187,7 @@ class TaskController extends Controller
 
     public function deleteTask($id)
     {
-        // $userId = auth()->user()->id;
-        $userId = 1;
+        $userId = auth()->user()->id;
         $task = Task::where([
             ['id', $id],
             ['user_id', $userId],

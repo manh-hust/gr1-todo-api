@@ -22,32 +22,37 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::prefix('auth')->group(function () {
-    Route::get('/google', [AuthController::class, 'loginByGoogle']);
-    Route::get('/google/callback', [AuthController::class, 'loginByGoogleCallback']);
+    Route::get('/google', [AuthController::class, 'redirectToGoogle']);
+    Route::get('/google/callback', [AuthController::class, 'handleGoogleCallback']);
 
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', [AuthController::class, 'user']);
+
+    Route::middleware('auth:sanctum')->group(
+        function () {
+            Route::post('/logout', [AuthController::class, 'logout']);
+            Route::get('/user', [UserController::class, 'getUser']);
+        }
+    );
 });
 
 Route::prefix('tasks')->group(function () {
-    // Route::middleware('auth:sanctum')->group(
-    //     function () {
-    Route::get('/', [TaskController::class, 'getTasks']);
-    Route::get('/shared', [TaskController::class, 'getSharedTasks']);
-    Route::get('/history', [TaskController::class, 'getHistoryTasks']);
-    Route::get('/{id}', [TaskController::class, 'getTask']);
+    Route::middleware('auth:sanctum')->group(
+        function () {
+            Route::get('/', [TaskController::class, 'getTasks']);
+            Route::get('/shared', [TaskController::class, 'getSharedTasks']);
+            Route::get('/history', [TaskController::class, 'getHistoryTasks']);
+            Route::get('/{id}', [TaskController::class, 'getTask']);
 
-    Route::post('/', [TaskController::class, 'createTask']);
-    Route::post('/{id}/edit', [TaskController::class, 'updateTask']);
-    Route::post('/{id}/status', [TaskController::class, 'updateStatus']);
-    Route::post('/{id}/delete', [TaskController::class, 'deleteTask']);
+            Route::post('/', [TaskController::class, 'createTask']);
+            Route::post('/{id}/edit', [TaskController::class, 'updateTask']);
+            Route::post('/{id}/status', [TaskController::class, 'updateStatus']);
+            Route::post('/{id}/delete', [TaskController::class, 'deleteTask']);
 
-    Route::post('/{id}/members', [TaskController::class, 'addMember']);
-    Route::delete('/{id}/members/{memberId}', [TaskController::class, 'removeMember']);
-    //     }
-    // );
+            Route::post('/{id}/members', [TaskController::class, 'addMember']);
+            Route::delete('/{id}/members/{memberId}', [TaskController::class, 'removeMember']);
+        }
+    );
 });
 
 

@@ -13,4 +13,14 @@ class UserController extends Controller
         $users = User::all();
         return ApiResponse::createSuccessResponse(UserResource::collection($users));
     }
+
+    public function getUser()
+    {
+        $id = auth()->user()->id;
+        $user = User::find($id);
+        if (!$user) {
+            return ApiResponse::createFailedResponse(['User not found']);
+        }
+        return ApiResponse::createSuccessResponse(new UserResource($user));
+    }
 }
