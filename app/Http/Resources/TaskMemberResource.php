@@ -18,6 +18,7 @@ class TaskMemberResource extends JsonResource
             'id' => $this->member->id,
             'name' => $this->member->name,
             'email' => $this->member->email,
+            'isOwner' => $this->is_owner,
         ];
     }
 }

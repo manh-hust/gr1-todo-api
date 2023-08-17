@@ -39,9 +39,8 @@ Route::prefix('auth')->group(function () {
 Route::prefix('tasks')->group(function () {
     Route::middleware('auth:sanctum')->group(
         function () {
-            Route::get('/', [TaskController::class, 'getTasks']);
-            Route::get('/shared', [TaskController::class, 'getSharedTasks']);
-            Route::get('/history', [TaskController::class, 'getHistoryTasks']);
+            Route::get('/sharing', [TaskController::class, 'getSharingTasks']);
+            Route::get('/{type}', [TaskController::class, 'getTasks']);
             Route::get('/{id}', [TaskController::class, 'getTask']);
 
             Route::post('/', [TaskController::class, 'createTask']);
