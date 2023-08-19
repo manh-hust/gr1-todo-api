@@ -11,6 +11,7 @@ use App\Models\Task;
 use App\Models\TaskTag;
 use Illuminate\Support\Facades\DB;
 use App\Models\TaskMember;
+use App\Http\Requests\AddMemberRequest;
 
 class TaskController extends Controller
 {
@@ -193,6 +194,40 @@ class TaskController extends Controller
 
         $task->update([
             'deleted_at' => now(),
+        ]);
+
+        return ApiResponse::createSuccessResponse([]);
+    }
+
+    public function addMember(AddMemberRequest $request, $id)
+    {
+        $userId = auth()->user()->id;
+        $task = Task::where([
+            ['id', $id],
+            ['deleted_at', null]
+        ])->first();
+
+        if (!$task) {
+            return ApiResponse::createFailedResponse(['Task not found']);
+        }
+
+        $insertData = collect($request->members)->map(function ($memberId) use ($task) {
+            return [
+                'task_id' => $task->id,
+                'user_id' => $memberId,
+            ];
+        })->toArray();
+
+        TaskMember::where([
+            ['task_id', $task->id],
+        ])->delete();
+
+        TaskMember::insert($insertData);
+
+        TaskMember::insert([
+            'task_id' => $task->id,
+            'user_id' => $userId,
+            'is_owner' => true,
         ]);
 
         return ApiResponse::createSuccessResponse([]);

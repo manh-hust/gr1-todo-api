@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\NotificationController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -56,6 +58,9 @@ Route::prefix('tasks')->group(function () {
 
 
 Route::get('/members', [UserController::class, 'getMembers']);
+
+Route::get('/notifications', [NotificationController::class, 'getNotifications']);
+
 
 Route::prefix('tags')->group(function () {
     Route::get('/', [TagController::class, 'getTags']);
