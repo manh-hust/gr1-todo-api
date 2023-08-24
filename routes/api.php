@@ -30,6 +30,8 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
 
+    Route::post('/admin/login', [AuthController::class, 'adminLogin']);
+
     Route::middleware('auth:sanctum')->group(
         function () {
             Route::post('/logout', [AuthController::class, 'logout']);
@@ -56,11 +58,20 @@ Route::prefix('tasks')->group(function () {
     );
 });
 
-
 Route::get('/members', [UserController::class, 'getMembers']);
 
-Route::get('/notifications', [NotificationController::class, 'getNotifications']);
-
+Route::prefix('/notifications')->group(
+    function () {
+        Route::middleware('auth:sanctum')->group(
+            function () {
+                Route::get('/', [NotificationController::class, 'getNotifications']);
+                Route::post('/', [NotificationController::class, 'createNotification']);
+                Route::post('/{id}', [NotificationController::class, 'updateNotification']);
+                Route::delete('/{id}', [NotificationController::class, 'deleteNotification']);
+            }
+        );
+    }
+);
 
 Route::prefix('tags')->group(function () {
     Route::get('/', [TagController::class, 'getTags']);
