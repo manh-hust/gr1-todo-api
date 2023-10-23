@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class TaskMemberResource extends JsonResource
+class NotificationResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,10 +15,12 @@ class TaskMemberResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id' => $this->member->id,
-            'name' => $this->member->name,
-            'email' => $this->member->email,
-            'isOwner' => $this->is_owner,
+            "id" => $this->id,
+            'title' => $this->title,
+            'content' => $this->content,
+            'image' => $this?->image,
+            "createdAt" => $this->created_at->format('Y-m-d H:i'),
+            "updatedAt" => $this->updated_at->format('Y-m-d H:i'),
         ];
     }
 }

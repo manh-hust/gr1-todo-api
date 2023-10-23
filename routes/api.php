@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\NotificationController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -28,6 +30,8 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
 
+    Route::post('/admin/login', [AuthController::class, 'adminLogin']);
+
     Route::middleware('auth:sanctum')->group(
         function () {
             Route::post('/logout', [AuthController::class, 'logout']);
@@ -39,9 +43,8 @@ Route::prefix('auth')->group(function () {
 Route::prefix('tasks')->group(function () {
     Route::middleware('auth:sanctum')->group(
         function () {
-            Route::get('/', [TaskController::class, 'getTasks']);
-            Route::get('/shared', [TaskController::class, 'getSharedTasks']);
-            Route::get('/history', [TaskController::class, 'getHistoryTasks']);
+            Route::get('/sharing', [TaskController::class, 'getSharingTasks']);
+            Route::get('/{type}', [TaskController::class, 'getTasks']);
             Route::get('/{id}', [TaskController::class, 'getTask']);
 
             Route::post('/', [TaskController::class, 'createTask']);
@@ -55,8 +58,20 @@ Route::prefix('tasks')->group(function () {
     );
 });
 
-
 Route::get('/members', [UserController::class, 'getMembers']);
+
+Route::prefix('/notifications')->group(
+    function () {
+        Route::middleware('auth:sanctum')->group(
+            function () {
+                Route::get('/', [NotificationController::class, 'getNotifications']);
+                Route::post('/', [NotificationController::class, 'createNotification']);
+                Route::post('/{id}', [NotificationController::class, 'updateNotification']);
+                Route::delete('/{id}', [NotificationController::class, 'deleteNotification']);
+            }
+        );
+    }
+);
 
 Route::prefix('tags')->group(function () {
     Route::get('/', [TagController::class, 'getTags']);

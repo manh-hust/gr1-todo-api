@@ -14,6 +14,7 @@ class TaskMember extends Model
     protected $fillable = [
         'task_id',
         'user_id',
+        'is_owner'
     ];
 
     public function task()

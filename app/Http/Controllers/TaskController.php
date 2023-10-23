@@ -5,17 +5,17 @@ namespace App\Http\Controllers;
 use App\Enums\TaskStatus;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\CreateTaskRequest;
-use App\Http\Requests\UpdateStatusRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
 use App\Models\TaskTag;
 use Illuminate\Support\Facades\DB;
 use App\Models\TaskMember;
+use App\Http\Requests\AddMemberRequest;
 
 class TaskController extends Controller
 {
-    public function getTasks()
+    public function getTasks($type)
     {
         $userId = auth()->user()->id;
         $tasks = Task::with(['members', 'tags'])->where([
@@ -23,23 +23,30 @@ class TaskController extends Controller
             ['deleted_at', null]
         ])->get();
 
-        $todoTasks = $tasks->filter(function ($task) {
-            return $task->status === TaskStatus::TODO;
-        });
+        $todoTasks = collect([]);
 
-        $inProgressTasks = $tasks->filter(function ($task) {
-            return $task->status === TaskStatus::INPROGRESS;
-        });
+        if ($type == 'todo') {
+            $todoTasks = $tasks->filter(function ($task) {
+                return $task->status == TaskStatus::TODO;
+            });
+        } else if ($type == 'done') {
+            $todoTasks = $tasks->filter(function ($task) {
+                return $task->status == TaskStatus::DONE;
+            });
+        }
 
-        $doneTasks = $tasks->filter(function ($task) {
-            return $task->status === TaskStatus::DONE;
-        });
+        return ApiResponse::createSuccessResponse(TaskResource::collection($todoTasks));
+    }
 
-        return ApiResponse::createSuccessResponse([
-            'todo' => TaskResource::collection($todoTasks),
-            'inProgress' => TaskResource::collection($inProgressTasks),
-            'done' => TaskResource::collection($doneTasks),
-        ]);
+    public function getSharingTasks()
+    {
+        $userId = auth()->user()->id;
+        $tasks = Task::with(['members', 'tags'])->whereHas('members', function ($query) use ($userId) {
+            $query->where([
+                ['user_id', $userId],
+            ]);
+        })->get();
+        return ApiResponse::createSuccessResponse(TaskResource::collection($tasks));
     }
 
     public function createTask(CreateTaskRequest $request)
@@ -76,6 +83,11 @@ class TaskController extends Controller
                 })->toArray();
 
                 TaskMember::insert($insertData);
+                TaskMember::insert([
+                    'task_id' => $task->id,
+                    'user_id' => $userId,
+                    'is_owner' => true,
+                ]);
             }
             DB::commit();
         } catch (\Exception $e) {
@@ -128,7 +140,10 @@ class TaskController extends Controller
                         'user_id' => $memberId,
                     ];
                 })->toArray();
-                TaskMember::where('task_id', $task->id)->delete();
+                TaskMember::where([
+                    ['task_id', $task->id],
+                    ['user_id', '!=', $userId]
+                ])->delete();
                 TaskMember::insert($insertData);
             } else {
                 TaskMember::where('task_id', $task->id)->delete();
@@ -143,7 +158,7 @@ class TaskController extends Controller
         return ApiResponse::createSuccessResponse(new TaskResource($task));
     }
 
-    public function updateStatus(UpdateStatusRequest $request, $id)
+    public function updateStatus($id)
     {
         $userId = auth()->user()->id;
         $task = Task::where([
@@ -156,31 +171,10 @@ class TaskController extends Controller
             return ApiResponse::createFailedResponse(['Task not found']);
         }
 
-        switch ($request->status) {
-            case TaskStatus::TODO:
-                $task->update([
-                    'status' => $request->status,
-                    'end_at' => null,
-                ]);
-                break;
-            case TaskStatus::INPROGRESS:
-                $task->update([
-                    'status' => $request->status,
-                    'end_at' => null,
-                ]);
-                break;
-            case TaskStatus::DONE:
-                if (!$request->endAt) {
-                    return ApiResponse::createFailedResponse(['EndAt is required']);
-                }
-                $task->update([
-                    'status' => $request->status,
-                    'end_at' => $request->endAt,
-                ]);
-                break;
-            default:
-                return ApiResponse::createFailedResponse(['Status is invalid']);
-        }
+        $task->update([
+            'status' => TaskStatus::DONE,
+            'end_at' => date("Y-m-d H:i", strtotime('+7 hours')),
+        ]);
 
         return ApiResponse::createSuccessResponse(new TaskResource($task));
     }
@@ -200,6 +194,40 @@ class TaskController extends Controller
 
         $task->update([
             'deleted_at' => now(),
+        ]);
+
+        return ApiResponse::createSuccessResponse([]);
+    }
+
+    public function addMember(AddMemberRequest $request, $id)
+    {
+        $userId = auth()->user()->id;
+        $task = Task::where([
+            ['id', $id],
+            ['deleted_at', null]
+        ])->first();
+
+        if (!$task) {
+            return ApiResponse::createFailedResponse(['Task not found']);
+        }
+
+        $insertData = collect($request->members)->map(function ($memberId) use ($task) {
+            return [
+                'task_id' => $task->id,
+                'user_id' => $memberId,
+            ];
+        })->toArray();
+
+        TaskMember::where([
+            ['task_id', $task->id],
+        ])->delete();
+
+        TaskMember::insert($insertData);
+
+        TaskMember::insert([
+            'task_id' => $task->id,
+            'user_id' => $userId,
+            'is_owner' => true,
         ]);
 
         return ApiResponse::createSuccessResponse([]);

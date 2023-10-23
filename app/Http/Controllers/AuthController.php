@@ -21,6 +21,16 @@ class AuthController extends Controller
         return ApiResponse::createSuccessResponse(['token' => $token]);
     }
 
+    public function adminLogin(Request $request)
+    {
+        $user = User::where('email', $request->email)->where('role', 1)->first();
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return ApiResponse::createFailedResponse(['Username or password is incorrect']);
+        }
+        $token = $user->createToken('auth_token')->plainTextToken;
+        return ApiResponse::createSuccessResponse(['token' => $token]);
+    }
+
     public function register(RegisterRequest $request)
     {
         $user = User::create([
