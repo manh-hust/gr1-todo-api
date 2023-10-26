@@ -10,7 +10,7 @@ class UserController extends Controller
 {
     public function getMembers()
     {
-        $users = User::all();
+        $users = User::where('role', 0)->get();
         return ApiResponse::createSuccessResponse(UserResource::collection($users));
     }
 

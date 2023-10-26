@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\NotificationController;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,23 +20,34 @@ use App\Http\Controllers\NotificationController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
 Route::prefix('auth')->group(function () {
-    Route::get('/google', [AuthController::class, 'redirectToGoogle']);
-    Route::get('/google/callback', [AuthController::class, 'handleGoogleCallback']);
-
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
 
-    Route::post('/admin/login', [AuthController::class, 'adminLogin']);
+    Route::get('/google', [AuthController::class, 'redirectToGoogle']);
+    Route::get('/google/callback', [AuthController::class, 'handleGoogleCallback']);
 
-    Route::middleware('auth:sanctum')->group(
+    Route::post('/forgot-password', [AuthController::class, 'sendForgotPasswordEmail'])->name('password.request');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.reset');
+
+    Route::middleware(['auth:sanctum', 'abilities:user'])->group(
         function () {
+            Route::get('/user/info', [UserController::class, 'getUser']);
             Route::post('/logout', [AuthController::class, 'logout']);
-            Route::get('/user', [UserController::class, 'getUser']);
+            Route::post('/change-password', [AuthController::class, 'changePassword']);
+        }
+    );
+
+    Route::prefix('admin')->group(
+        function () {
+            Route::post('/login', [AuthController::class, 'adminLogin']);
+
+            Route::middleware(['auth:sanctum', 'abilities:admin'])->group(
+                function () {
+                    Route::post('/logout', [AuthController::class, 'logout']);
+                    Route::get('/info', [UserController::class, 'getUser']);
+                }
+            );
         }
     );
 });
