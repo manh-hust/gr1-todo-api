@@ -2,8 +2,12 @@
 
 namespace App\Exceptions;
 
+use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Request;
 use Throwable;
+use Laravel\Sanctum\Exceptions\MissingAbilityException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -36,6 +40,15 @@ class Handler extends ExceptionHandler
     {
         $this->reportable(function (Throwable $e) {
             //
+        });
+
+        $this->renderable(function (Exception $e, Request $request) {
+            if ($e instanceof MissingAbilityException || $e instanceof AccessDeniedHttpException) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You are not authorized to access this resource',
+                ], 403);
+            }
         });
     }
 }
