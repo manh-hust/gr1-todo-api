@@ -14,6 +14,9 @@ use App\Http\Services\AuthService;
 use Illuminate\Support\Facades\Password;
 use App\Http\Requests\ChangePasswordRequest;
 use Illuminate\Support\Facades\Auth;
+use App\Events\RegisterSuccess;
+use App\Models\Notification;
+use App\Notifications\SendMail;
 
 class AuthController extends Controller
 {
@@ -52,6 +55,9 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        RegisterSuccess::dispatch($user);
+        // $user->notify(new SendMail());
         return ApiResponse::createSuccessResponse(['token' => $token]);
     }
 
