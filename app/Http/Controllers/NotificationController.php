@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MyEvent;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\CreateNotificationRequest;
 use App\Http\Resources\NotificationResource;
@@ -28,6 +29,9 @@ class NotificationController extends Controller
             'content' => $request->content,
 
         ]);
+
+        MyEvent::dispatch();
+
         return ApiResponse::createSuccessResponse(new NotificationResource($notification));
     }
 }

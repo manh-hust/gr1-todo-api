@@ -52,23 +52,25 @@ Route::prefix('auth')->group(function () {
     );
 });
 
-Route::prefix('tasks')->group(function () {
-    Route::middleware('auth:sanctum')->group(
-        function () {
-            Route::get('/sharing', [TaskController::class, 'getSharingTasks']);
-            Route::get('/{type}', [TaskController::class, 'getTasks']);
-            Route::get('/{id}', [TaskController::class, 'getTask']);
+Route::prefix('tasks')->group(
+    function () {
+        Route::middleware('auth:sanctum')->group(
+            function () {
+        Route::get('/sharing', [TaskController::class, 'getSharingTasks']);
+        Route::get('/{type}', [TaskController::class, 'getTasks']);
+        Route::get('/{id}', [TaskController::class, 'getTask']);
 
-            Route::post('/', [TaskController::class, 'createTask']);
-            Route::post('/{id}/edit', [TaskController::class, 'updateTask']);
-            Route::post('/{id}/status', [TaskController::class, 'updateStatus']);
-            Route::post('/{id}/delete', [TaskController::class, 'deleteTask']);
+        Route::post('/', [TaskController::class, 'createTask']);
+        Route::post('/{id}/edit', [TaskController::class, 'updateTask']);
+        Route::post('/{id}/status', [TaskController::class, 'updateStatus']);
+        Route::post('/{id}/delete', [TaskController::class, 'deleteTask']);
 
-            Route::post('/{id}/members', [TaskController::class, 'addMember']);
-            Route::delete('/{id}/members/{memberId}', [TaskController::class, 'removeMember']);
-        }
-    );
-});
+        Route::post('/{id}/members', [TaskController::class, 'addMember']);
+        Route::delete('/{id}/members/{memberId}', [TaskController::class, 'removeMember']);
+            }
+        );
+    }
+);
 
 Route::get('/members', [UserController::class, 'getMembers']);
 
